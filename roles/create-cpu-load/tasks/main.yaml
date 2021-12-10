@@ -1,0 +1,56 @@
+---
+
+- block: # create db, user and table for cpu-load app
+
+  - name: create cpu-load db
+    become_user: postgres
+    community.postgresql.postgresql_db:
+      state: present
+      name: "{{ DB_NAME }}"
+          
+  - name: create user for app
+    become_user: postgres
+    community.postgresql.postgresql_user:
+      name: "{{ CPU_LOAD_USER }}"
+      password: "{{ CPU_LOAD_PASSWORD }}"
+
+  - name: copy script to server
+    ansible.builtin.copy:
+      src: ../files/script.sql
+      dest: /tmp/
+      owner: postgres
+      group: postgres
+      mode: '0700'
+  
+  - name: Create tables
+    become_user: postgres
+    community.postgresql.postgresql_query:
+      db: "{{ DB_NAME }}"
+      path_to_script: /tmp/script.sql
+      as_single_query: true
+
+  - name: grand access to db and tables
+    become_user: postgres
+    community.postgresql.postgresql_privs:
+      database: "{{ DB_NAME }}"
+      type: table
+      objs: ALL_IN_SCHEMA
+      roles: "{{ CPU_LOAD_USER }}"
+      privs: SELECT,INSERT,UPDATE,DELETE
+      grant_option: no
+
+  when: inventory_hostname in groups['group_postgres_master']
+
+# allow md5 connect for user (master and nodes)
+
+- name: allow md5 connection for user
+  become_user: postgres
+  community.postgresql.postgresql_pg_hba:
+    dest: "{{ pg_hba }}"
+    contype: host
+    databases: all
+    users: "{{ CPU_LOAD_USER }}"
+    address: samehost
+    method: md5
+    create: true
+  notify: restart postgres

@@ -1,0 +1,14 @@
+---
+
+- name: "setup replication (conf)"
+  ansible.builtin.lineinfile:
+    path: "{{ pg_conf }}"
+    regexp: "{{ item.regexp }}" 
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: "wal_level =", line: "wal_level = hot_standby" }
+    - { regexp: "archive_mode =", line: "archive_mode = on" }
+    - { regexp: "archive_command =", line: "archive_command = 'cd .'" }
+    - { regexp: "max_wal_senders =", line: "max_wal_senders = 8" }
+    - { regexp: "hot_standby =", line: "hot_standby = on" }
+  notify: restart postgres

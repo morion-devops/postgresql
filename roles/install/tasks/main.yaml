@@ -1,0 +1,35 @@
+---
+
+# install db
+
+- name: Install packages
+  ansible.builtin.apt:
+    update-cache: true
+    pkg:
+      - postgresql-13
+      - python3-psycopg2
+      - acl # need for become_user and postgresql modules
+
+- name: setup password for user postgres
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    user: postgres
+    password: "{{ POSTGRES_USER_PASSWORD }}"
+
+- name: allow to remote connect (conf)
+  ansible.builtin.lineinfile:
+    path: "{{ pg_conf }}"
+    regexp: "listen_addresses = "
+    line: "listen_addresses = '{{ ansible_host }}'"
+  notify: restart postgres
+
+- name: allow to remote connect (pg_hba)
+  community.postgresql.postgresql_pg_hba:
+    dest: "{{ pg_hba }}"
+    contype: host
+    databases: all
+    users: all
+    address: "{{ ansible_host }}/24"
+    method: md5
+    create: true
+  notify: restart postgres

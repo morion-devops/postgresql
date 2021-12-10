@@ -1,0 +1,34 @@
+---
+
+# configure replication for master
+
+- block: 
+    - name: "master allow connect from nodes"
+      community.postgresql.postgresql_pg_hba:
+        dest: "{{ pg_hba }}"
+        contype: host
+        databases: replication
+        users: postgres
+        address: "192.168.121.106/24" #todo: automate getting ip-address
+        method: md5
+        create: true
+      notify: restart postgres
+
+    - name: "master setup replication config"
+      ansible.builtin.lineinfile:
+        path: "{{ pg_conf }}"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: "wal_level =", line: "wal_level = hot_standby" }
+        - { regexp: "archive_mode =", line: "archive_mode = on" }
+        - { regexp: "archive_command =", line: "archive_command = 'cd .'" }
+        - { regexp: "max_wal_senders =", line: "max_wal_senders = 8" }
+        - { regexp: "hot_standby =", line: "hot_standby = on" }
+      notify: restart postgres
+
+    # need restart posgtres before node try connects to master
+    - name: Flush handlers
+      meta: flush_handlers
+
+  when: inventory_hostname in groups['group_postgres_master']

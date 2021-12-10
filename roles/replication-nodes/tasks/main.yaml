@@ -1,0 +1,45 @@
+---
+# configure replication for nodes
+
+- block:
+    - name: "stop node1 service"
+      ansible.builtin.service:
+        name: postgresql
+        state: stopped
+
+    - name: "node1 allow connect from master"
+      community.postgresql.postgresql_pg_hba:
+        dest: "{{ pg_hba }}"
+        contype: host
+        databases: replication
+        users: postgres
+        address: "192.168.121.105/24" #todo: automate getting ip-address
+        method: md5
+        create: true
+
+    - name: "node1 delete default db"
+      ansible.builtin.file:
+        path: "{{ pg_db_path }}/main"
+        state: absent
+
+    - name: "node1 create empty dir"
+      ansible.builtin.file:
+        path: "{{ pg_db_path }}/main"
+        state: directory
+        owner: postgres
+        group: postgres
+        mode: "0700"
+
+    - name: copy database from master
+      become: true
+      become_user: postgres
+      ansible.builtin.shell:
+        chdir: "{{ pg_db_path }}"
+        cmd: "PGPASSWORD={{ POSTGRES_USER_PASSWORD }} pg_basebackup -P -R -X stream -c fast -h 192.168.121.105 -U postgres -D ./main" #todo: automate getting ip-address
+
+    - name: "start node1 service"
+      ansible.builtin.service:
+        name: postgresql
+        state: started
+
+  when: inventory_hostname in groups['group_postgres_nodes']

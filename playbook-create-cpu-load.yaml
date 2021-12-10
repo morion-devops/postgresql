@@ -1,0 +1,18 @@
+---
+
+- name: Create db, user, table for cpu-load app
+  hosts: group_postgres_master
+  become: true
+
+  vars:
+    DB_NAME: cpu_load_db
+    pg_hba: /etc/postgresql/13/main/pg_hba.conf
+
+  roles:
+    - create-cpu-load
+
+  handlers:
+    - name: 'restart postgres'
+      ansible.builtin.service:
+        name: postgresql
+        state: restarted

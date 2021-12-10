@@ -1,0 +1,6 @@
+---
+# Create all.yaml file with this variables:
+
+POSTGRES_USER_PASSWORD: password # db-user, not system
+CPU_LOAD_USER: user
+CPU_LOAD_PASSWORD: password
