@@ -11,10 +11,11 @@
 
   roles:
     - shared-roles/set-timezone
+    - shared-roles/bash-completion
     - install
     - replication-all
     - replication-master
-    - replication-nodes
+    - replication-nodes 
 
   handlers:
     - name: 'restart postgres'
