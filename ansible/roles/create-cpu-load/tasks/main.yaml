@@ -43,14 +43,14 @@
 
 # allow md5 connect for user (master and nodes)
 
-- name: allow md5 connection for user
+- name: allow md5 connection for CPU_LOAD_USER
   become_user: postgres
   community.postgresql.postgresql_pg_hba:
     dest: "{{ pg_hba }}"
     contype: host
-    databases: all
+    databases: "{{ DB_NAME }}"
     users: "{{ CPU_LOAD_USER }}"
-    address: samehost
+    address: all
     method: md5
     create: true
   notify: restart postgres
