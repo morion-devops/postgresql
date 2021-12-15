@@ -1,0 +1,25 @@
+plugin: gcp_compute
+
+projects:
+  - "prefab-poetry-334607"
+
+regions:
+  - "europe-north1"
+
+hostnames:
+  - name
+
+compose:
+  # for private_address
+  ansible_host: networkInterfaces[0].accessConfigs[0].natIP
+
+filters:
+   - "labels.service_name = postgres"
+
+groups:
+  group_postgres: "labels['service_name'] == 'postgres'"
+  group_postgres_master: "labels['service_name'] == 'postgres' and labels['service_role'] == 'master'"
+  group_postgres_nodes: "labels['service_name'] == 'postgres' and labels['service_role'] == 'node'"
+
+auth_kind: serviceaccount
+service_account_file: ../credentials/.gcp-creds.json

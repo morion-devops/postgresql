@@ -13,7 +13,7 @@
         contype: host
         databases: replication
         users: postgres
-        address: "192.168.121.105/24" #todo: automate getting ip-address
+        address: "{{ hostvars['postgres-master']['ansible_default_ipv4']['address'] }}/24"
         method: md5
         create: true
 
@@ -35,7 +35,7 @@
       become_user: postgres
       ansible.builtin.shell:
         chdir: "{{ pg_db_path }}"
-        cmd: "PGPASSWORD={{ POSTGRES_USER_PASSWORD }} pg_basebackup -P -R -X stream -c fast -h 192.168.121.105 -U postgres -D ./main" #todo: automate getting ip-address
+        cmd: "PGPASSWORD={{ POSTGRES_USER_PASSWORD }} pg_basebackup -P -R -X stream -c fast -h {{ hostvars['postgres-master']['ansible_default_ipv4']['address'] }} -U postgres -D ./main"
 
     - name: "start node1 service"
       ansible.builtin.service:

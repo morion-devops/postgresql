@@ -9,10 +9,10 @@
         contype: host
         databases: replication
         users: postgres
-        address: "192.168.121.106/24" #todo: automate getting ip-address
+        address: "{{ hostvars['postgres-node1']['ansible_default_ipv4']['address'] }}/24"
         method: md5
         create: true
-      notify: restart postgres
+      notify: restart postgres # todo: loop via all nodes
 
     # need restart posgtres before node try connects to master
     - name: Flush handlers

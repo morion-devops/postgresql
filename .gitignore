@@ -1,2 +1,7 @@
 .vagrant
+.terraform
+terraform.tfstate*
+*.lock.hcl
+credentials/.gcp*
+.env
 ansible/group_vars/all.yaml

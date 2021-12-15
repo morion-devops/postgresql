@@ -16,14 +16,14 @@
     user: postgres
     password: "{{ POSTGRES_USER_PASSWORD }}"
 
-- name: allow to remote connect (conf)
+- name: setup listen addresses
   ansible.builtin.lineinfile:
     path: "{{ pg_conf }}"
     regexp: "listen_addresses = "
-    line: "listen_addresses = '{{ ansible_host }}'"
+    line: "listen_addresses = '*'"
   notify: restart postgres
 
-- name: allow to remote connect (pg_hba)
+- name: allow to remote connect
   community.postgresql.postgresql_pg_hba:
     dest: "{{ pg_hba }}"
     contype: host
